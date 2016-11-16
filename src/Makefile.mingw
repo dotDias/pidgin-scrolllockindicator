@@ -1,0 +1,65 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile for win32 (mingw) version of the plugin
+#
+
+PIDGIN_TREE_TOP := ../../../..
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+.SUFFIXES:
+.SUFFIXES: .c .dll.o .dll
+
+OBJECTS = NTKbdLites.dll.o scrolllockindicator.dll.o
+DLLS = scrolllockindicator.dll
+
+##
+## INCLUDE PATHS
+##
+INCLUDE_PATHS +=	\
+			-I$(GTK_TOP)/include \
+			-I$(GTK_TOP)/include/glib-2.0 \
+			-I$(GTK_TOP)/lib/glib-2.0/include \
+			-I$(PIDGIN_TREE_TOP) \
+			-I$(PURPLE_TOP) \
+			-I$(PURPLE_TOP)/win32 \
+			-I.
+
+LIB_PATHS +=		-L$(GTK_TOP)/lib \
+			-L$(PURPLE_TOP)
+
+##
+## LIBRARIES
+##
+LIBS =	\
+			-lglib-2.0 \
+			-lgobject-2.0 \
+			-lgmodule-2.0 \
+			-lintl \
+			-lws2_32 \
+			-lpurple \
+			-l:NTKbdLites.dll.o
+
+##
+## TARGET DEFINITIONS
+##
+.PHONY: all clean plugins install
+
+all: $(PURPLE_DLL).a $(OBJECTS) $(DLLS)
+
+install: all $(PURPLE_INSTALL_PLUGINS_DIR)
+	cp *.dll $(PURPLE_INSTALL_PLUGINS_DIR)
+
+%.dll: %.dll.o
+	$(CC) -shared $@.o $(LIB_PATHS) $(LIBS) $(DLL_LD_FLAGS) -o $@
+
+%.dll.o: %.c $(PURPLE_CONFIG_H) $(PURPLE_VERSION_H)
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDE_PATHS) -o $@ -c $<
+
+##
+## CLEAN RULES
+##
+clean:
+	rm -f *.o *.dll
+
+include $(PIDGIN_COMMON_TARGETS)

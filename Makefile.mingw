@@ -1,0 +1,60 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile for win32 (mingw) version of the plugin
+#
+# This makefile expects current directory to be
+# ./libpurple/plugins/scrolllockindicator
+#
+
+PACKAGE = scrolllockindicator
+
+PIDGIN_TREE_TOP := ../../..
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+SUBDIRS = src po
+
+##
+## TARGET DEFINITIONS
+##
+.PHONY: all locale dll $(SUBDIRS)
+
+all:
+	for dir in $(SUBDIRS); do \
+	  $(MAKE) -C $$dir -f Makefile.mingw; \
+	done
+
+install: all
+	for dir in $(SUBDIRS); do \
+	  $(MAKE) -C $$dir -f Makefile.mingw install; \
+	done
+
+zip: all
+	rm plugin.zip; \
+	mkdir -p ./zip/plugins; \
+	cp ./src/scrolllockindicator.dll ./zip/plugins/; \
+	strip ./zip/plugins/scrolllockindicator.dll; \
+	cd ./po; \
+	mo_files=`ls *.mo`; \
+	cd ..; \
+	for mo in $$mo_files; do \
+	  lang=`echo $$mo | sed 's/\.mo$$//'`; \
+	  dir=./zip/locale/$$lang/LC_MESSAGES; \
+	  mkdir -p $$dir; \
+	  cp ./po/$$mo $$dir/$(PACKAGE).mo; \
+	done; \
+	cd ./zip; \
+	zip -r plugin.zip *; \
+	cd ..; \
+	mv ./zip/plugin.zip ./; \
+	rm -rf ./zip;
+
+##
+## CLEAN RULES
+##
+clean:
+	for dir in $(SUBDIRS); do \
+	  $(MAKE) -C $$dir -f Makefile.mingw clean; \
+	done
+
+include $(PIDGIN_COMMON_TARGETS)

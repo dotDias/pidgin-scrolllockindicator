@@ -1,0 +1,32 @@
+#
+# Makefile.mingw
+#
+# Description: Makefile to generate mo files
+#
+
+PACKAGE = scrolllockindicator
+
+PIDGIN_TREE_TOP := ../../../..
+include $(PIDGIN_TREE_TOP)/libpurple/win32/global.mak
+
+.SUFFIXES:
+.SUFFIXES: .po
+
+PO_FILES := $(wildcard *.po)
+MO_FILES := $(patsubst %.po,%.mo,$(PO_FILES))
+
+all: $(MO_FILES)
+
+%.mo: %.po
+	rm -f $@ && $(GMSGFMT) -o $@ $<
+
+install: all $(PURPLE_INSTALL_PO_DIR)
+	for mo in $(MO_FILES); do \
+	  lang=`echo $$mo | sed 's/\.mo$$//'`; \
+	  dir=$(PURPLE_INSTALL_PO_DIR)/$$lang/LC_MESSAGES; \
+	  mkdir -p $$dir; \
+	  cp $$mo $$dir/$(PACKAGE).mo
+	done
+
+clean:
+	rm -f *.mo
